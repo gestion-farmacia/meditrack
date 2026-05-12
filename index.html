@@ -38,7 +38,11 @@
     <script src="js/auth.js"></script>
     <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('CensoPro listo para usar offline', reg))
+        .catch(err => console.log('Error al activar modo offline', err));
+    });
   }
 </script>
 </body>

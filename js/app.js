@@ -183,6 +183,17 @@ function actualizarEstadoRed() {
         barraStatus.classList.add('offline');
         textoStatus.innerText = "○ Modo Offline - Los datos se guardarán localmente";
     }
+}function guardarPaciente(paciente) {
+    // 1. Traemos lo que ya esté guardado (o un grupo vacío si no hay nada)
+    let pacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
+    
+    // 2. Agregamos el nuevo paciente de MediTrack
+    pacientes.push(paciente);
+    
+    // 3. Lo volvemos a guardar en la memoria del teléfono
+    localStorage.setItem('pacientes', JSON.stringify(pacientes));
+    
+    alert("¡Paciente guardado en MediTrack con éxito!");
 }
 
 // Escuchamos cuando el navegador cambia de estado
