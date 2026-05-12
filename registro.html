@@ -78,7 +78,31 @@
             </form>
         </section>
     </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+  // Tus credenciales oficiales
+  const firebaseConfig = {
+    apiKey: "AIzaSyCqsTk_px6wRI6swp1qmUMk533--ViMcUI",
+    authDomain: "meditrack-37523.firebaseapp.com",
+    projectId: "meditrack-37523",
+    storageBucket: "meditrack-37523.firebasestorage.app",
+    messagingSenderId: "662083047128",
+    appId: "1:662083047128:web:f2cf62ba42f1c6c38451ad",
+    measurementId: "G-ERDRFSBVEV"
+  };
+
+  // Inicializamos Firebase y la base de datos Firestore
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Compartimos la base de datos con el resto de archivos
+  window.db = db;
+  console.log("MediTrack Cloud: Conexión establecida");
+</script>
+
+<script src="js/app.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

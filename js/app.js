@@ -4,7 +4,6 @@ const vistaFormulario = document.getElementById('vistaFormulario');
 const listaPacientes = document.getElementById('listaPacientes');
 const buscador = document.getElementById('buscador');
 const filtroBotones = document.querySelectorAll('.filter-btn');
-
 const pacienteForm = document.getElementById('pacienteForm');
 const selectorPatologia = document.getElementById('patologia');
 const contenedorOtros = document.getElementById('contenedor-otros');
@@ -50,40 +49,31 @@ selectorPatologia.addEventListener('change', () => {
     contenedorOtros.style.display = selectorPatologia.value === 'Otros' ? 'block' : 'none';
 });
 
-// --- 4. FUNCIÓN PARA MOSTRAR PACIENTES (Versión Corregida) ---
+// --- 4. FUNCIÓN PARA MOSTRAR PACIENTES (DESDE LOCAL Y NUBE) ---
 function mostrarPacientes() {
-    // Traemos los datos
     let pacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
     const textoBusqueda = buscador.value.toLowerCase();
 
-    // Aplicamos los filtros
     const pacientesFiltrados = pacientes.filter(p => {
         const coincideFiltro = (filtroActual === "Todos" || p.patologia === filtroActual);
         const coincideBusqueda = (p.nombre.toLowerCase().includes(textoBusqueda) || p.cedula.includes(textoBusqueda));
         return coincideFiltro && coincideBusqueda;
     });
 
-    // Limpiamos la lista
     listaPacientes.innerHTML = '';
     
-    // SI NO HAY PACIENTES: Mostramos un mensaje claro
     if (pacientesFiltrados.length === 0) {
-        listaPacientes.innerHTML = `<p style="text-align:center; padding:20px; color:#666;">
-            No se encontraron pacientes registrados.
-        </p>`;
+        listaPacientes.innerHTML = `<p style="text-align:center; padding:20px; color:#666;">No hay pacientes registrados.</p>`;
         return;
     }
 
-    // SI HAY PACIENTES: Los dibujamos
     pacientesFiltrados.forEach(p => {
         listaPacientes.innerHTML += `
             <div class="paciente-card">
                 <div class="card-info">
                     <strong>${p.nombre}</strong> <span class="tag">${p.patologia}</span><br>
                     <small>C.I: ${p.cedula} | Edad: ${p.edad} años</small><br>
-                    <div class="medicamento-info">
-                        <strong>💊 Tratamiento:</strong> ${p.medicamento || 'Sin asignar'}
-                    </div>
+                    <div class="medicamento-info"><strong>💊 Tratamiento:</strong> ${p.medicamento || 'Sin asignar'}</div>
                     <small>📞 Tel: ${p.telefono || 'N/A'}</small><br>
                     <small>📍 ${p.direccion || 'Sin dirección'}</small>
                 </div>
@@ -91,52 +81,45 @@ function mostrarPacientes() {
                     <button class="btn-edit" onclick="prepararEdicion(${p.id})">✏️</button>
                     <button class="btn-delete" onclick="eliminarPaciente(${p.id})">🗑️</button>
                 </div>
-            </div>
-        `;
+            </div>`;
     });
 }
 
-// --- 5. GESTIÓN DE INICIO (El secreto del Master) ---
-// Este bloque asegura que todo se ejecute apenas cargue la página
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("MediTrack cargado correctamente.");
-    actualizarEstadoRed(); // Revisa si hay internet
-    mostrarPacientes();    // Muestra la lista de inmediato
-});
-
-
-// --- 5. EDITAR, GUARDAR Y ELIMINAR ---
-window.prepararEdicion = (id) => {
-    let pacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
-    const p = pacientes.find(pac => pac.id === id);
-
-    if (p) {
-        editandoID = id;
-        document.getElementById('nombre').value = p.nombre;
-        document.getElementById('cedula').value = p.cedula;
-        document.getElementById('direccion').value = p.direccion;
-        document.getElementById('telefono').value = p.telefono;
-        document.getElementById('edad').value = p.edad;
-        document.getElementById('medicamento').value = p.medicamento;
-
-        const opcionesEstandar = ["Hipertensión", "Cardiopata", "Diabetico", "Psiquiatrico", "Bronco Pulmonar", "Endocrina"];
-        
-        if (opcionesEstandar.includes(p.patologia)) {
-            selectorPatologia.value = p.patologia;
-            contenedorOtros.style.display = 'none';
+// --- 5. LÓGICA DE FIREBASE (NUBE) ---
+async function guardarEnFirebase(datos) {
+    try {
+        const { collection, addDoc, doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        if (editandoID) {
+            await setDoc(doc(window.db, "pacientes", editandoID.toString()), datos);
         } else {
-            selectorPatologia.value = "Otros";
-            contenedorOtros.style.display = 'block';
-            document.getElementById('otra_patologia').value = p.patologia;
+            await addDoc(collection(window.db, "pacientes"), datos);
         }
-
-        document.querySelector('.btn-save').textContent = "Actualizar Cambios";
-        vistaConsulta.style.display = 'none';
-        vistaFormulario.style.display = 'block';
+        console.log("¡Sincronizado con Firebase!");
+    } catch (error) {
+        console.error("Error en nube:", error);
     }
-};
+}
 
-pacienteForm.addEventListener('submit', (e) => {
+// Cargar datos de la nube al iniciar
+async function cargarDesdeFirebase() {
+    try {
+        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const querySnapshot = await getDocs(collection(window.db, "pacientes"));
+        let pacientesNube = [];
+        querySnapshot.forEach((doc) => {
+            pacientesNube.push({ ...doc.data(), id: doc.id });
+        });
+        if (pacientesNube.length > 0) {
+            localStorage.setItem('pacientes', JSON.stringify(pacientesNube));
+            mostrarPacientes();
+        }
+    } catch (error) {
+        console.error("Error cargando de la nube:", error);
+    }
+}
+
+// --- 6. GUARDAR, EDITAR Y ELIMINAR ---
+pacienteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     let pacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
     
@@ -162,36 +145,56 @@ pacienteForm.addEventListener('submit', (e) => {
         pacientes.push(datos);
     }
 
+    // Guardado Local (para velocidad y modo offline)
     localStorage.setItem('pacientes', JSON.stringify(pacientes));
+    
+    // Guardado en Nube (Firebase)
+    await guardarEnFirebase(datos);
+
     pacienteForm.reset();
     btnCancelar.click(); 
     mostrarPacientes();
 });
 
-window.eliminarPaciente = (id) => {
-    if (confirm("¿Estás seguro de eliminar este registro?")) {
-        let pacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
-        pacientes = pacientes.filter(p => p.id !== id);
-        localStorage.setItem('pacientes', JSON.stringify(pacientes));
-        mostrarPacientes();
+window.prepararEdicion = (id) => {
+    let pacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
+    const p = pacientes.find(pac => pac.id == id);
+    if (p) {
+        editandoID = id;
+        document.getElementById('nombre').value = p.nombre;
+        document.getElementById('cedula').value = p.cedula;
+        document.getElementById('direccion').value = p.direccion;
+        document.getElementById('telefono').value = p.telefono;
+        document.getElementById('edad').value = p.edad;
+        document.getElementById('medicamento').value = p.medicamento;
+        document.querySelector('.btn-save').textContent = "Actualizar Cambios";
+        vistaConsulta.style.display = 'none';
+        vistaFormulario.style.display = 'block';
     }
 };
 
-// --- 6. GESTIÓN DE CONEXIÓN A INTERNET ---
+window.eliminarPaciente = (id) => {
+    if (confirm("¿Eliminar este registro?")) {
+        let pacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
+        pacientes = pacientes.filter(p => p.id != id);
+        localStorage.setItem('pacientes', JSON.stringify(pacientes));
+        mostrarPacientes();
+        // Nota: Para eliminar de Firebase se requiere una función extra, la añadiremos luego.
+    }
+};
+
+// --- 7. ESTADO DE RED ---
 const barraStatus = document.getElementById('status-red');
 const textoStatus = document.getElementById('status-texto');
 
 function actualizarEstadoRed() {
-    // Verificamos si los elementos existen antes de usarlos
     if (!barraStatus || !textoStatus) return; 
-
     if (navigator.onLine) {
-        barraStatus.classList.remove('offline');
-        barraStatus.classList.add('online');
+        barraStatus.className = 'status-barra online';
         textoStatus.innerText = "● Modo Online - Sincronizado";
+        cargarDesdeFirebase(); // Si vuelve el internet, actualizamos datos
     } else {
-        barraStatus.classList.remove('online');
-        barraStatus.classList.add('offline');
+        barraStatus.className = 'status-barra offline';
         textoStatus.innerText = "○ Modo Offline - Local";
     }
 }
@@ -199,15 +202,7 @@ function actualizarEstadoRed() {
 window.addEventListener('online', actualizarEstadoRed);
 window.addEventListener('offline', actualizarEstadoRed);
 
-// --- 7. SIMULACIÓN DE SINCRONIZACIÓN ---
-function sincronizarConServidor() {
-    const pacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
-    if (pacientes.length > 0) {
-        console.log("Sincronizando registros con el servidor...");
-    }
-}
-
-// --- 8. INICIO AUTOMÁTICO ---
+// --- 8. INICIO ---
 document.addEventListener('DOMContentLoaded', () => {
     actualizarEstadoRed();
     mostrarPacientes();
