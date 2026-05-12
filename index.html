@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediTrack - Login</title>
+    <!-- Enlazamos el archivo de CSS que crearemos luego -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="status-red" class="status-barra">
+    <span id="status-texto">Conectado</span>
+</div>
+    <div class="login-container">
+        <header>
+            <h1>MediTrack</h1>
+            <p>Gestión de Pacientes Crónicos</p>
+        </header>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Usuario:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn-login">Entrar al Sistema</button>
+        </form>
+        
+        <div id="message" class="error-msg"></div>
+    </div>
+
+    <!-- Enlazamos el archivo de lógica de autenticación -->
+    <script src="js/auth.js"></script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+</body>
+</html>

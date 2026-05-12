@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediTrack- Panel de Control</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <h1>Pacientes Crónicos</h1>
+            <div class="header-buttons">
+                <button id="btnNuevo" class="btn-primary">+ Nuevo Registro</button>
+                <button id="logoutBtn" class="btn-secondary">Salir</button>
+            </div>
+        </header>
+
+        <!-- SECCIÓN 1: BUSCADOR Y FILTROS -->
+        <section id="vistaConsulta">
+            <div class="search-box">
+                <input type="text" id="buscador" placeholder="🔍 Buscar por nombre o cédula...">
+            </div>
+            
+            <div class="filtros-container">
+                <small>Filtrar por categoría:</small>
+                <div class="filtros">
+                    <button class="filter-btn active" data-filter="Todos">Todos</button>
+                    <button class="filter-btn" data-filter="Hipertensión">Hipertensión</button>
+                    <button class="filter-btn" data-filter="Cardiopata">Cardiopatía</button>
+                    <button class="filter-btn" data-filter="Diabetico">Diabéticos</button>
+                    <button class="filter-btn" data-filter="Psiquiatrico">Psiquiátricos</button>
+                    <button class="filter-btn" data-filter="Bronco Pulmonar">Broncopulmonar</button>
+                    <button class="filter-btn" data-filter="Endocrina">Endocrinas</button>
+                    <button class="filter-btn" data-filter="Otros">Otros</button>
+                </div>
+            </div>
+
+            <div id="listaPacientes">
+                <!-- Se carga vía app.js -->
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: FORMULARIO -->
+        <section id="vistaFormulario" style="display: none;">
+            <h3>Registrar / Editar Paciente</h3>
+            <form id="pacienteForm">
+                <input type="text" id="nombre" placeholder="Nombres y Apellidos" required>
+                <input type="number" id="cedula" placeholder="Cédula" required>
+                <input type="text" id="direccion" placeholder="Dirección" required>
+                <input type="tel" id="telefono" placeholder="Teléfono">
+                <input type="number" id="edad" placeholder="Edad" required>
+
+                <label for="patologia">Patología Principal:</label>
+                <select id="patologia">
+                    <option value="Hipertensión">Hipertensión</option>
+                    <option value="Cardiopata">Cardiopata</option>
+                    <option value="Diabetico">Diabético</option>
+                    <option value="Psiquiatrico">Psiquiátrico</option>
+                    <option value="Bronco Pulmonar">Bronco Pulmonar</option>
+                    <option value="Endocrina">Enfermedades Endocrinas</option>
+                    <option value="Otros">Otros</option>
+                </select>
+
+                <div id="contenedor-otros" style="display:none;">
+                    <input type="text" id="otra_patologia" placeholder="Especifique enfermedad">
+                </div>
+
+                <textarea id="medicamento" placeholder="Medicamentos y dosis"></textarea>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn-save">Guardar Paciente</button>
+                    <button type="button" id="btnCancelar" class="btn-cancel">Volver a la lista</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
