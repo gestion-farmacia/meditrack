@@ -207,3 +207,18 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarEstadoRed();
     mostrarPacientes();
 });
+pacienteForm.addEventListener('submit', async (e) => { // Agregamos 'async' aquí
+    e.preventDefault();
+    
+    // ... (aquí va tu código que ya tienes para armar el objeto 'datos') ...
+
+    // 1. Guardas en el celular (lo que ya hacías)
+    localStorage.setItem('pacientes', JSON.stringify(pacientes));
+    
+    // 2. ¡ESTO ES LO NUEVO! Envías a la nube
+    await guardarEnFirebase(datos); // Usamos 'await' para esperar a la nube
+
+    pacienteForm.reset();
+    btnCancelar.click(); 
+    mostrarPacientes();
+});
